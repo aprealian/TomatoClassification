@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        app:contentScrim="?attr/colorPrimary"
+        app:layout_scrollFlags="enterAlways">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:text="@string/add_data"
+                android:textSize="16sp"
+                android:textColor="@color/colorWhite"
+                android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Spinner
+                android:id="@+id/method_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:padding="@dimen/activity_vertical_margin"
+                android:popupBackground="@android:color/white"
+                android:scrollbars="none"
+                android:spinnerMode="dropdown" />
+
+            <EditText
+                android:id="@+id/url_edittext"
+                android:hint="Put Image URL here"
+                android:textColor="@color/colorBlack"
+                android:padding="@dimen/activity_vertical_margin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/process_button"
+                android:text="Process"
+                android:layout_margin="10dp"
+                android:layout_gravity="right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+
+
+            <TextView
+                android:text="Histogram"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart1"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_above="@+id/seekBar1" />
+
+            <TextView
+                android:text="Histogram Equalization"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart2"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_above="@+id/seekBar1" />
+
+
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/tvXMax"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/seekBar1"
+                android:layout_alignParentRight="true"
+                android:text="500"
+                android:layout_marginBottom="15dp"
+                android:layout_marginRight="10dp"
+                android:gravity="right"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <SeekBar
+                android:visibility="gone"
+                android:id="@+id/seekBar1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/seekBar2"
+                android:layout_margin="8dp"
+                android:layout_marginBottom="35dp"
+                android:layout_toLeftOf="@+id/tvXMax"
+                android:layout_marginRight="5dp"
+                android:max="1500"
+                android:paddingBottom="12dp" />
+
+
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/tvYMax"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/seekBar2"
+                android:layout_alignParentRight="true"
+                android:text="500"
+                android:layout_marginBottom="15dp"
+                android:layout_marginRight="10dp"
+                android:gravity="right"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <SeekBar
+                android:visibility="gone"
+                android:id="@+id/seekBar2"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true"
+                android:layout_margin="8dp"
+                android:layout_toLeftOf="@+id/tvYMax"
+                android:layout_marginRight="5dp"
+                android:max="150"
+                android:paddingBottom="12dp" />
+
+
+            <TextView
+                android:text="Image Original"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <ImageView
+                android:id="@+id/before_imageView"
+                android:layout_centerHorizontal="true"
+                android:layout_width="170dp"
+                android:layout_height="170dp" />
+
+            <TextView
+                android:text="Image After Equalization"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <ImageView
+                android:id="@+id/after_imageView"
+                android:layout_below="@id/before_imageView"
+                android:layout_centerHorizontal="true"
+                android:layout_width="170dp"
+                android:layout_height="170dp" />
+
+            <TextView
+                android:text="Image Threshold"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <ImageView
+                android:id="@+id/greyscale_imageView"
+                android:layout_below="@id/after_imageView"
+                android:layout_centerHorizontal="true"
+                android:layout_width="170dp"
+                android:layout_height="170dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

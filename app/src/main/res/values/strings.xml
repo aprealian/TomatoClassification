@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Tomato Classification</string>
+    <string name="tomato_classification">Tomato Classification</string>
+    <string name="data_training">Data Training</string>
+    <string name="add_data">Add Data</string>
+    <string name="take_picture">Scan Tomato</string>
+
+    <string-array name="method_array">
+        <item>choose picture</item>
+        <item>camera</item>
+        <item>image url</item>
+    </string-array>
+
+</resources>
