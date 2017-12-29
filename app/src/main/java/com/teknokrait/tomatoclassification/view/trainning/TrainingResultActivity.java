@@ -1,6 +1,7 @@
 package com.teknokrait.tomatoclassification.view.trainning;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -28,14 +29,21 @@ import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.teknokrait.tomatoclassification.R;
 import com.teknokrait.tomatoclassification.helper.Helper;
+import com.teknokrait.tomatoclassification.model.Status;
+import com.teknokrait.tomatoclassification.model.Tomato;
 import com.teknokrait.tomatoclassification.processing.HistogramEQ;
 import com.teknokrait.tomatoclassification.processing.Threshold;
+import com.teknokrait.tomatoclassification.realm.RealmController;
 
 import java.util.ArrayList;
 
-public class TrainingActivity  extends Activity implements SeekBar.OnSeekBarChangeListener {
+import io.realm.Realm;
+
+public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBarChangeListener {
 
     //private LineChart mChart;
+    private Realm realm;
+    private Bitmap bitmap;
     private LineChart beforeEQChart, afterEQChart;
     private SeekBar mSeekBarX, mSeekBarY;
     private TextView tvX, tvY;
@@ -43,17 +51,29 @@ public class TrainingActivity  extends Activity implements SeekBar.OnSeekBarChan
     private Spinner methodSpinner;
     private EditText urlEditText;
     private Button processButton;
+    private Status status;
+    private String imageUrl;
+    private String imagePath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_training);
-
+        initExtra();
         initView();
         initChartBeforeEQ();
         initChartAfterEQ();
         setHistogram();
+    }
+
+    private void initExtra() {
+        Intent intent = getIntent();
+        bitmap = (Bitmap) intent.getParcelableExtra("BitmapImage");
+        status = (Status) intent.getParcelableExtra("Status");
+        imagePath = intent.getStringExtra("ImagePath");
+        imageUrl = intent.getStringExtra("ImageUrl");
     }
 
     private void initChartAfterEQ() {
@@ -196,7 +216,7 @@ public class TrainingActivity  extends Activity implements SeekBar.OnSeekBarChan
 
 
     private void setHistogram() {
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.tomato_green);
+        //Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.tomato_green);
 
         beforeImageView.setImageBitmap(bitmap);
 
@@ -406,7 +426,6 @@ public class TrainingActivity  extends Activity implements SeekBar.OnSeekBarChan
 
 
         //SET HISTOGRAM AFTER EQUALIZATION
-
         ArrayList<int[]> histoAf = hist.imageHistogram(newBitmap);
         ArrayList<Entry> yValsRedAf = new ArrayList<Entry>();
         ArrayList<Entry> yValsGreenAf = new ArrayList<Entry>();
@@ -429,13 +448,19 @@ public class TrainingActivity  extends Activity implements SeekBar.OnSeekBarChan
         }
 
 
+        int avgRedEQ = totalRedAf/countRedAf;
+        int avgGreenEQ = totalGreenAf/countGreenAf;
+        int avgBlueEQ = totalBlueAf/countBlueAf;
         Log.e("color EQ count RED : ", String.valueOf(countRedAf));
-        Log.e("color EQ avg RED : ", String.valueOf(totalRedAf/countRedAf));
+        Log.e("color EQ avg RED : ", String.valueOf(avgRedEQ));
         Log.e("color EQ count GREEN: ", String.valueOf(countGreenAf));
-        Log.e("color EQ avg GREEN : ", String.valueOf(totalGreenAf/countGreenAf));
+        Log.e("color EQ avg GREEN : ", String.valueOf(avgGreenEQ));
         Log.e("color EQ count BLUE : ", String.valueOf(countBlueAf));
-        Log.e("color EQ avg BLUE : ", String.valueOf(totalBlueAf/countBlueAf));
-        //Log.e("warna avg : ", String.valueOf(total/(bitmap.getWidth()*bitmap.getHeight())));
+        Log.e("color EQ avg BLUE : ", String.valueOf(avgBlueEQ));
+
+        //store data to Realm
+        saveTomatoToRealm(avgRedEQ, avgGreenEQ, avgBlueEQ, status, imageUrl, imagePath);
+
 
         if (afterEQChart.getData() != null && afterEQChart.getData().getDataSetCount() > 0) {
             setRed = (LineDataSet)afterEQChart.getData().getDataSetByIndex(0);
@@ -525,6 +550,25 @@ public class TrainingActivity  extends Activity implements SeekBar.OnSeekBarChan
             //mChart.setData(data);
         }
 
+    }
+
+    private void saveTomatoToRealm(double red, double green, double blue, Status status, String imageUrl, String imagePath){
+        //create objcet Tomato before save to Realm
+        Tomato tomato = new Tomato();
+        tomato.setId(RealmController.with(this).getNextKey());
+        tomato.setImageUrl(imageUrl);
+        tomato.setImagePath(imagePath);
+        tomato.setStatus(status.getStatus());
+        tomato.setClassification(status.getId());
+        tomato.setRed(red);
+        tomato.setGreen(green);
+        tomato.setBlue(blue);
+
+        //save to RealmDB
+        this.realm = RealmController.with(this).getRealm();
+        realm.beginTransaction();
+        realm.copyToRealm(tomato);
+        realm.commitTransaction();
     }
 
 

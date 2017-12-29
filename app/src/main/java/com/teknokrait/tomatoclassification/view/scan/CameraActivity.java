@@ -1,5 +1,7 @@
 package com.teknokrait.tomatoclassification.view.scan;
 
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -32,11 +34,15 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.teknokrait.tomatoclassification.R;
+import com.teknokrait.tomatoclassification.view.trainning.CameraTrainingActivity;
+import com.teknokrait.tomatoclassification.view.trainning.DataTrainingActivity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -72,7 +78,7 @@ public class CameraActivity extends AppCompatActivity {
     private boolean mFlashSupported;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
-    private ImageView photoImageView;
+    private ImageView photoImageView, menuImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +94,14 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 takePicture();
+            }
+        });
+        menuImageView = (ImageView) findViewById(R.id.menu_imageView);
+        menuImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ViewDialog alert = new ViewDialog();
+                alert.showDialog(CameraActivity.this, "List Menu");
             }
         });
     }
@@ -123,7 +137,7 @@ public class CameraActivity extends AppCompatActivity {
         }
         @Override
         public void onError(CameraDevice camera, int error) {
-            cameraDevice.close();
+            if (cameraDevice != null) cameraDevice.close();
             cameraDevice = null;
         }
     };
@@ -352,4 +366,40 @@ public class CameraActivity extends AppCompatActivity {
         stopBackgroundThread();
         super.onPause();
     }
+
+
+
+    public class ViewDialog {
+
+        public void showDialog(Activity activity, String msg){
+            final Dialog dialog = new Dialog(activity);
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setCancelable(true);
+            dialog.setContentView(R.layout.dialog_menu);
+
+            Button dataTrainingButton = (Button) dialog.findViewById(R.id.data_training_button);
+            Button trainingButton = (Button) dialog.findViewById(R.id.training_button);
+
+            dataTrainingButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(CameraActivity.this, DataTrainingActivity.class);
+                    startActivity(intent);
+                }
+            });
+
+            trainingButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(CameraActivity.this, CameraTrainingActivity.class);
+                    startActivity(intent);
+                }
+            });
+
+            dialog.show();
+
+        }
+    }
+
+
 }

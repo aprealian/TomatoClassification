@@ -64,10 +64,10 @@ public class DataTrainingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(DataTrainingActivity.this, TrainingActivity.class);
+                Intent intent = new Intent(DataTrainingActivity.this, TrainingResultActivity.class);
                 startActivity(intent);
 
-                /*inflater = TrainingActivity.this.getLayoutInflater();
+                /*inflater = TrainingResultActivity.this.getLayoutInflater();
                 View content = inflater.inflate(R.layout.edit_item, null);
                 final EditText editTitle = (EditText) content.findViewById(R.id.title);
                 final EditText editAuthor = (EditText) content.findViewById(R.id.author);
@@ -88,7 +88,7 @@ public class DataTrainingActivity extends AppCompatActivity {
                                 book.setImageUrl(editThumbnail.getText().toString());
 
                                 if (editTitle.getText() == null || editTitle.getText().toString().equals("") || editTitle.getText().toString().equals(" ")) {
-                                    Toast.makeText(TrainingActivity.this, "Entry not saved, missing title", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(TrainingResultActivity.this, "Entry not saved, missing title", Toast.LENGTH_SHORT).show();
                                 } else {
                                     // Persist your data easily
                                     realm.beginTransaction();

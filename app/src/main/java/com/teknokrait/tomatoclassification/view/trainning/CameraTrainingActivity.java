@@ -138,7 +138,7 @@ public class CameraTrainingActivity extends AppCompatActivity {
         }
         @Override
         public void onError(CameraDevice camera, int error) {
-            cameraDevice.close();
+            if (cameraDevice != null) cameraDevice.close();
             cameraDevice = null;
         }
     };
@@ -209,10 +209,10 @@ public class CameraTrainingActivity extends AppCompatActivity {
 
                         final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                         cameraDevice.close();
-                        Intent intent = new Intent(CameraTrainingActivity.this, ScanResultActivity.class);
+                        Intent intent = new Intent(CameraTrainingActivity.this, TrainingResultActivity.class);
                         intent.putExtra("BitmapImage", bitmap);
+                        intent.putExtra("Status", classSpinner.getSelectedItem().toString());
                         startActivity(intent);
-
 
                         /*runOnUiThread(new Runnable() {
                             @Override

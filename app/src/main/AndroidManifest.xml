@@ -17,7 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".view.trainning.CameraTrainingActivity">
+        <activity android:name=".view.scan.CameraActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.scan.CameraActivity"
+            android:name=".view.trainning.CameraTrainingActivity"
             android:label="@string/data_training" />
         <activity android:name=".view.trainning.DataTrainingActivity" />
         <activity android:name=".MainActivity" />

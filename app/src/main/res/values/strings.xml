@@ -4,6 +4,7 @@
     <string name="data_training">Data Training</string>
     <string name="add_data">Add Data</string>
     <string name="take_picture">Scan Tomato</string>
+    <string name="training_data">Training Data</string>
 
     <string-array name="method_array">
         <item>choose picture</item>
