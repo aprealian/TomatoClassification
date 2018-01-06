@@ -9,4 +9,11 @@
     <dimen name="margin_small">0dp</dimen>
     <dimen name="text_size_normal">14sp</dimen>
     <dimen name="imge_book_detail">80dp</dimen>
+
+
+    <integer name="timeline_place_item_image_ratio_width">3</integer>
+    <integer name="timeline_place_item_image_ratio_height">2</integer>
+    <dimen name="max_create_place_image_width">1024px</dimen>
+    <dimen name="create_place_photo_thumb_width">70dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
 </resources>

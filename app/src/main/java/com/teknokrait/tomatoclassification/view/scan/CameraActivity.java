@@ -208,6 +208,7 @@ public class CameraActivity extends AppCompatActivity {
 
                         final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                         cameraDevice.close();
+                        cameraDevice = null;
                         Intent intent = new Intent(CameraActivity.this, ScanResultActivity.class);
                         intent.putExtra("BitmapImage", bitmap);
                         startActivity(intent);
@@ -362,11 +363,10 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Log.e(TAG, "onPause");
-        //closeCamera();
+        closeCamera();
         stopBackgroundThread();
         super.onPause();
     }
-
 
 
     public class ViewDialog {

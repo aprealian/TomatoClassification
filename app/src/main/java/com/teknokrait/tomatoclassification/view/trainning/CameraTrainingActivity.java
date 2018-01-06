@@ -39,6 +39,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.teknokrait.tomatoclassification.R;
+import com.teknokrait.tomatoclassification.model.Status;
 import com.teknokrait.tomatoclassification.view.scan.ScanResultActivity;
 
 import java.io.File;
@@ -96,11 +97,11 @@ public class CameraTrainingActivity extends AppCompatActivity {
         });
 
 
-        List<String> stringList = new ArrayList<>();
-        stringList.add("Mentah");
-        stringList.add("Mateng");
+        List<Status> statusList = new ArrayList<>();
+        statusList.add(new Status(1,"Matang"));
+        statusList.add(new Status(2,"Mentah"));
         Spinner sp = (Spinner)findViewById(R.id.class_spinner);
-        ArrayAdapter<String> myAdapter = new ClassSpinnerAdapter(this, R.layout.spinner_item_class, stringList);
+        ArrayAdapter<Status> myAdapter = new ClassSpinnerAdapter(this, R.layout.spinner_item_class, statusList);
         sp.setAdapter(myAdapter);
 
     }
@@ -173,7 +174,9 @@ public class CameraTrainingActivity extends AppCompatActivity {
             return;
         }
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        Log.e("tes ya", "hallo 0");
         try {
+            Log.e("tes ya", "hallo 1");
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
             Size[] jpegSizes = null;
             if (characteristics != null) {
@@ -185,6 +188,7 @@ public class CameraTrainingActivity extends AppCompatActivity {
                 width = jpegSizes[0].getWidth();
                 height = jpegSizes[0].getHeight();
             }
+            Log.e("tes ya", "hallo 2");
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
             List<Surface> outputSurfaces = new ArrayList<Surface>(2);
             outputSurfaces.add(reader.getSurface());
@@ -192,10 +196,11 @@ public class CameraTrainingActivity extends AppCompatActivity {
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(reader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+            Log.e("tes ya", "hallo 3");
             // Orientation
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
-            final File file = new File(Environment.getExternalStorageDirectory()+"/pic.jpg");
+            final File file = new File(Environment.getExternalStorageDirectory()+"/pic2.jpg");
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -207,12 +212,18 @@ public class CameraTrainingActivity extends AppCompatActivity {
                         buffer.get(bytes);
                         save(bytes);
 
+
+
                         final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        cameraDevice.close();
+                        if (cameraDevice != null){
+                            cameraDevice.close();
+                            cameraDevice = null;
+                        }
                         Intent intent = new Intent(CameraTrainingActivity.this, TrainingResultActivity.class);
                         intent.putExtra("BitmapImage", bitmap);
-                        intent.putExtra("Status", classSpinner.getSelectedItem().toString());
+                        //intent.putExtra("Status", classSpinner.getSelectedItem().toString());
                         startActivity(intent);
+
 
                         /*runOnUiThread(new Runnable() {
                             @Override
@@ -349,6 +360,7 @@ public class CameraTrainingActivity extends AppCompatActivity {
             }
         }
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -360,10 +372,12 @@ public class CameraTrainingActivity extends AppCompatActivity {
             textureView.setSurfaceTextureListener(textureListener);
         }
     }
+
+
     @Override
     protected void onPause() {
         Log.e(TAG, "onPause");
-        //closeCamera();
+        closeCamera();
         stopBackgroundThread();
         super.onPause();
     }

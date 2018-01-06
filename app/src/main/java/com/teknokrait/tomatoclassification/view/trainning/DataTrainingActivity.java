@@ -47,7 +47,7 @@ public class DataTrainingActivity extends AppCompatActivity {
         setupRecycler();
 
         if (!Prefs.with(this).getPreLoad()) {
-            setRealmData();
+            //setRealmData();
         }
 
         // refresh the realm instance
@@ -154,7 +154,7 @@ public class DataTrainingActivity extends AppCompatActivity {
         tomato.setBlue(50);
         tomatos.add(tomato);
 
-        tomato = new Tomato();
+        /*tomato = new Tomato();
         tomato.setId(2);
         tomato.setImageUrl("http://www.nomeatathlete.com/wp-content/uploads/2011/07/iStock_000007185653XSmall.jpg");
         tomato.setImagePath(null);
@@ -162,7 +162,7 @@ public class DataTrainingActivity extends AppCompatActivity {
         tomato.setRed(251);
         tomato.setGreen(171);
         tomato.setBlue(50);
-        tomatos.add(tomato);
+        tomatos.add(tomato);*/
 
 
         for (Tomato t : tomatos) {
@@ -177,5 +177,13 @@ public class DataTrainingActivity extends AppCompatActivity {
     }
 
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        RealmController.with(this).refresh();
+        // get all persisted objects
+        // create the helper adapter and notify data set changes
+        // changes will be reflected automatically
+        setRealmAdapter(RealmController.with(this).getTomatoes());
+    }
 }

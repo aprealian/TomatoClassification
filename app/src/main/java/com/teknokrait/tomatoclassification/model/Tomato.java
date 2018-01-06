@@ -23,6 +23,12 @@ public class Tomato extends RealmObject {
 
     private double blue;
 
+    private double redEq;
+
+    private double greenEq;
+
+    private double blueEq;
+
     private int classification;
 
     private String status;
@@ -74,6 +80,30 @@ public class Tomato extends RealmObject {
 
     public void setBlue(double blue) {
         this.blue = blue;
+    }
+
+    public double getRedEq() {
+        return redEq;
+    }
+
+    public void setRedEq(double redEq) {
+        this.redEq = redEq;
+    }
+
+    public double getGreenEq() {
+        return greenEq;
+    }
+
+    public void setGreenEq(double greenEq) {
+        this.greenEq = greenEq;
+    }
+
+    public double getBlueEq() {
+        return blueEq;
+    }
+
+    public void setBlueEq(double blueEq) {
+        this.blueEq = blueEq;
     }
 
     public int getClassification() {

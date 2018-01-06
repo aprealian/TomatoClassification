@@ -30,6 +30,7 @@
         <activity android:name=".view.trainning.DataTrainingActivity" />
         <activity android:name=".MainActivity" />
         <activity android:name=".view.scan.ScanResultActivity"/>
+        <activity android:name=".view.trainning.TrainingResultActivity"/>
     </application>
 
 </manifest>

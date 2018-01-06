@@ -1,6 +1,7 @@
 package com.teknokrait.tomatoclassification.view.trainning;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,9 +15,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -34,26 +38,49 @@ import com.teknokrait.tomatoclassification.model.Tomato;
 import com.teknokrait.tomatoclassification.processing.HistogramEQ;
 import com.teknokrait.tomatoclassification.processing.Threshold;
 import com.teknokrait.tomatoclassification.realm.RealmController;
+import com.teknokrait.tomatoclassification.util.GalleryCameraInvoker;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.Realm;
 
-public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBarChangeListener {
+public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBarChangeListener,
+        GalleryCameraInvoker.CallbackWithProcessing {
+
+    private static final int REQ_CODE_CAMERA = 100;
+    private static final int REQ_CODE_GALLERY = 101;
 
     //private LineChart mChart;
     private Realm realm;
+    private GalleryCameraInvoker invoker;
+    private File changedPhotoFile;
+    private boolean isPickingPhoto;
     private Bitmap bitmap;
     private LineChart beforeEQChart, afterEQChart;
     private SeekBar mSeekBarX, mSeekBarY;
     private TextView tvX, tvY;
     private ImageView beforeImageView, afterImageView, greyscaleImageView;
+    private LinearLayout mainLinearLayout;
+    private ProgressBar progressBar;
     private Spinner methodSpinner;
+    private Spinner sp;
     private EditText urlEditText;
-    private Button processButton;
+    private Button processButton, saveButton;
     private Status status;
     private String imageUrl;
     private String imagePath;
+
+    private double colRed, colGreen, colBlue, colRedEQ, colGreenEQ, colBlueEQ;
+    private List<Double> colorsBF, colorsEQ;
+    private Status statusTomato;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +90,46 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
         setContentView(R.layout.activity_training);
         initExtra();
         initView();
-        initChartBeforeEQ();
-        initChartAfterEQ();
-        setHistogram();
+        if (bitmap != null){
+            mainLinearLayout.setVisibility(View.VISIBLE);
+            initChartBeforeEQ();
+            initChartAfterEQ();
+            setHistogram();
+        } else {
+            sp.setVisibility(View.VISIBLE);
+            methodSpinner.setVisibility(View.VISIBLE);
+            processButton.setVisibility(View.VISIBLE);
+
+            List<Status> statusList = new ArrayList<>();
+            statusList.add(new Status(1,"Matang"));
+            statusList.add(new Status(2,"Mentah"));
+            sp = (Spinner)findViewById(R.id.class_spinner);
+            ArrayAdapter<Status> myAdapter = new ClassSpinnerAdapter(this, R.layout.spinner_item_class, statusList);
+            sp.setAdapter(myAdapter);
+        }
+
+        processButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveButton.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
+                statusTomato = (Status) sp.getSelectedItem();
+                Toast.makeText(TrainingResultActivity.this, statusTomato.getStatus(), Toast.LENGTH_SHORT).show();
+                isPickingPhoto = false;
+                onChangePhoto();
+            }
+        });
+
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveTomatoToRealm(colorsBF, colorsEQ, statusTomato, "", changedPhotoFile.getAbsolutePath());
+                Toast.makeText(TrainingResultActivity.this, "Data has been saved", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
+
+
     }
 
     private void initExtra() {
@@ -74,6 +138,9 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
         status = (Status) intent.getParcelableExtra("Status");
         imagePath = intent.getStringExtra("ImagePath");
         imageUrl = intent.getStringExtra("ImageUrl");
+
+        colorsBF = new ArrayList<>();
+        colorsEQ = new ArrayList<>();
     }
 
     private void initChartAfterEQ() {
@@ -179,18 +246,25 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
     }
 
     private void initView() {
+
+        //Log.e("tes ya", "hallo 2");
+
         tvX = (TextView) findViewById(R.id.tvXMax);
         tvY = (TextView) findViewById(R.id.tvYMax);
         beforeImageView = (ImageView) findViewById(R.id.before_imageView);
         afterImageView = (ImageView) findViewById(R.id.after_imageView);
         greyscaleImageView = (ImageView) findViewById(R.id.greyscale_imageView);
+        mainLinearLayout = (LinearLayout) findViewById(R.id.main_linearLayout);
+        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
         mSeekBarX = (SeekBar) findViewById(R.id.seekBar1);
         mSeekBarY = (SeekBar) findViewById(R.id.seekBar2);
 
         methodSpinner = (Spinner) findViewById(R.id.method_spinner);
+        sp = (Spinner) findViewById(R.id.class_spinner);
         urlEditText = (EditText) findViewById(R.id.url_edittext);
         processButton = (Button) findViewById(R.id.process_button);
+        saveButton = (Button) findViewById(R.id.save_button);
 
 
         //SET SPINNER
@@ -223,7 +297,8 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
 
         //Bitmap newBitmap = hist.computeHistogramEQ(bitmap);
         // TODO: coba pakai helper
-        Bitmap newBitmap = Helper.histogramEqualization(bitmap, this);
+        //Bitmap newBitmap = Helper.histogramEqualization(bitmap, this);
+        Bitmap newBitmap = HistogramEQ.computeHistogramEQ(bitmap);
 
         afterImageView.setImageBitmap(newBitmap);
 
@@ -321,12 +396,17 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
 
 
 
+
+        double avgRed = totalRed/countRed;
+        double avgGreen = totalGreen/countGreen;
+        double avgBlue = totalBlue/countBlue;
+
         Log.e("color count RED : ", String.valueOf(countRed));
-        Log.e("color avg RED : ", String.valueOf(totalRed/countRed));
+        Log.e("color avg RED : ", String.valueOf(avgRed));
         Log.e("color count GREEN: ", String.valueOf(countGreen));
-        Log.e("color avg GREEN : ", String.valueOf(totalGreen/countGreen));
+        Log.e("color avg GREEN : ", String.valueOf(avgGreen));
         Log.e("color count BLUE : ", String.valueOf(countBlue));
-        Log.e("color avg BLUE : ", String.valueOf(totalBlue/countBlue));
+        Log.e("color avg BLUE : ", String.valueOf(avgBlue));
         //Log.e("warna avg : ", String.valueOf(total/(bitmap.getWidth()*bitmap.getHeight())));
 
 
@@ -448,9 +528,9 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
         }
 
 
-        int avgRedEQ = totalRedAf/countRedAf;
-        int avgGreenEQ = totalGreenAf/countGreenAf;
-        int avgBlueEQ = totalBlueAf/countBlueAf;
+        double avgRedEQ = totalRedAf/countRedAf;
+        double avgGreenEQ = totalGreenAf/countGreenAf;
+        double avgBlueEQ = totalBlueAf/countBlueAf;
         Log.e("color EQ count RED : ", String.valueOf(countRedAf));
         Log.e("color EQ avg RED : ", String.valueOf(avgRedEQ));
         Log.e("color EQ count GREEN: ", String.valueOf(countGreenAf));
@@ -458,8 +538,21 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
         Log.e("color EQ count BLUE : ", String.valueOf(countBlueAf));
         Log.e("color EQ avg BLUE : ", String.valueOf(avgBlueEQ));
 
+        List<Double> colors = new ArrayList<>();
+        colors.add(0,avgRed);
+        colors.add(1,avgGreen);
+        colors.add(2,avgBlue);
+        List<Double> colorsEq = new ArrayList<>();
+        colorsEq.add(0,avgRedEQ);
+        colorsEq.add(1,avgGreenEQ);
+        colorsEq.add(2,avgBlueEQ);
+
+
+        Toast.makeText(this, "hello", Toast.LENGTH_SHORT).show();
         //store data to Realm
-        saveTomatoToRealm(avgRedEQ, avgGreenEQ, avgBlueEQ, status, imageUrl, imagePath);
+        //saveTomatoToRealm(colors, colorsEq, status, imageUrl, imagePath);
+
+        //Toast.makeText(this, status.toString(), Toast.LENGTH_SHORT).show();
 
 
         if (afterEQChart.getData() != null && afterEQChart.getData().getDataSetCount() > 0) {
@@ -548,11 +641,23 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
             // set data
             afterEQChart.setData(data);
             //mChart.setData(data);
+
+
+            //saveTomatoToRealm();
+            colorsBF.add(new Double(avgRed));
+            colorsBF.add(new Double(avgGreen));
+            colorsBF.add(new Double(avgBlue));
+
+            colorsEQ.add(new Double(avgRedEQ));
+            colorsEQ.add(new Double(avgGreenEQ));
+            colorsEQ.add(new Double(avgBlueEQ));
+
+
         }
 
     }
 
-    private void saveTomatoToRealm(double red, double green, double blue, Status status, String imageUrl, String imagePath){
+    private void saveTomatoToRealm(List<Double> colors, List<Double> colorsEq, Status status, String imageUrl, String imagePath){
         //create objcet Tomato before save to Realm
         Tomato tomato = new Tomato();
         tomato.setId(RealmController.with(this).getNextKey());
@@ -560,9 +665,12 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
         tomato.setImagePath(imagePath);
         tomato.setStatus(status.getStatus());
         tomato.setClassification(status.getId());
-        tomato.setRed(red);
-        tomato.setGreen(green);
-        tomato.setBlue(blue);
+        tomato.setRed(colors.get(0));
+        tomato.setGreen(colors.get(1));
+        tomato.setBlue(colors.get(2));
+        tomato.setRedEq(colorsEq.get(0));
+        tomato.setGreenEq(colorsEq.get(1));
+        tomato.setBlueEq(colorsEq.get(2));
 
         //save to RealmDB
         this.realm = RealmController.with(this).getRealm();
@@ -597,4 +705,156 @@ public class TrainingResultActivity extends Activity implements SeekBar.OnSeekBa
     public void onStopTrackingTouch(SeekBar seekBar) {
 
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (invoker != null) {
+            invoker.onActivityResult(requestCode, resultCode, data);
+        }
+        if ((requestCode == REQ_CODE_CAMERA || requestCode == REQ_CODE_GALLERY) && requestCode == Activity.RESULT_CANCELED) {
+            isPickingPhoto = false;
+        }
+    }
+
+    protected void onChangePhoto() {
+        invoker = new GalleryCameraInvoker() {
+            @Override
+            protected int maxImageWidth() {
+                return getApplication().getResources().getDimensionPixelSize(R.dimen.max_create_place_image_width);
+            }
+
+            @Override
+            protected File onProcessingImageFromCamera(String path) {
+                File realFile = super.onProcessingImageFromCamera(path);
+
+                Bitmap bitmap = null;
+                int targetW = getResources().getDimensionPixelSize(R.dimen.max_create_place_image_width);
+
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                bmOptions.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(realFile.getPath(), bmOptions);
+                int photoW = bmOptions.outWidth;
+                int scaleFactor = photoW / targetW;
+
+                bmOptions.inJustDecodeBounds = false;
+                bmOptions.inSampleSize = scaleFactor;
+                bmOptions.inPurgeable = true;
+
+                bitmap = BitmapFactory.decodeFile(realFile.getPath(), bmOptions);
+
+                ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, imageStream);
+                bitmap.recycle();
+
+                String localPath = realFile.getPath();
+                String thumbPath = localPath.replace("JPEG", "THUMB");
+                File pictureFile = new File(thumbPath);
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(pictureFile);
+                    fos.write(imageStream.toByteArray());
+                    fos.close();
+
+                    return realFile;
+                } catch (FileNotFoundException e) {
+
+                } catch (IOException e) {
+
+                } finally {
+                    System.gc();
+                }
+                return null;
+            }
+
+            @Override
+            protected File onProcessingImageFromGallery(InputStream inputStream) throws IOException {
+                File realFile = super.onProcessingImageFromGallery(inputStream);
+
+                int targetW = getResources().getDimensionPixelSize(R.dimen.create_place_photo_thumb_width);
+
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                bmOptions.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(realFile.getPath(), bmOptions);
+                int photoW = bmOptions.outWidth;
+                int photoH = bmOptions.outHeight;
+
+                int targetH = (photoH * targetW) / photoW;
+
+                int scaleFactor = photoW / targetW;
+
+                bmOptions.inJustDecodeBounds = false;
+                bmOptions.inSampleSize = scaleFactor;
+                bmOptions.inPurgeable = true;
+
+                Bitmap bitmap = BitmapFactory.decodeFile(realFile.getPath(), bmOptions);
+
+                ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, imageStream);
+                bitmap.recycle();
+
+                String localPath = realFile.getPath();
+                String thumbPath = localPath.replace("JPEG", "THUMB");
+                File pictureFile = new File(thumbPath);
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(pictureFile);
+                    fos.write(imageStream.toByteArray());
+                    fos.close();
+                    return realFile;
+
+                } catch (FileNotFoundException e) {
+
+                } catch (IOException e) {
+
+
+                } finally {
+                    System.gc();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onShowOptionList(Context context) {
+                super.onShowOptionList(context);
+                isPickingPhoto = true;
+            }
+        };
+        invoker.invokeGalleryAndCamera(this, this, REQ_CODE_CAMERA, REQ_CODE_GALLERY, true);
+    }
+
+    @Override
+    public void onBitmapResult(File file) {
+        changedPhotoFile = file;
+        isPickingPhoto = false;
+        invoker = null;
+        if (changedPhotoFile != null && changedPhotoFile.exists()) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmap = BitmapFactory.decodeFile(changedPhotoFile.getAbsolutePath(), options);
+            if(bitmap != null) {
+                this.bitmap = bitmap;
+                initChartBeforeEQ();
+                initChartAfterEQ();
+                setHistogram();
+                progressBar.setVisibility(View.GONE);
+                mainLinearLayout.setVisibility(View.VISIBLE);
+                saveButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public void onCancelGalleryCameraInvoker() {
+        isPickingPhoto = false;
+        progressBar.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onProcessing() {
+
+    }
+
+
 }

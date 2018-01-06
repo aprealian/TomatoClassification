@@ -9,8 +9,11 @@ import com.teknokrait.tomatoclassification.adapters.RealmRecyclerViewAdapter;
 import com.teknokrait.tomatoclassification.model.Tomato;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,14 +62,27 @@ public class TomatoesAdapter extends RealmRecyclerViewAdapter<Tomato> {
         holder.greenTextView.setText(String.valueOf(tomato.getGreen()));
         holder.blueTextView.setText(String.valueOf(tomato.getBlue()));
 
+
+        holder.redEQTextView.setText(String.valueOf(tomato.getRedEq()));
+        holder.greenEQTextView.setText(String.valueOf(tomato.getGreenEq()));
+        holder.blueEQTextView.setText(String.valueOf(tomato.getBlueEq()));
+
         // load the background image
-        if (tomato.getImageUrl() != null) {
+        if (tomato.getImageUrl() != null && !TextUtils.isEmpty(tomato.getImageUrl())) {
             Glide.with(context)
                     .load(tomato.getImageUrl().replace("https", "http"))
                     .asBitmap()
                     .fitCenter()
                     .into(holder.imageImageView);
+        } else if (tomato.getImagePath() != null && !TextUtils.isEmpty(tomato.getImagePath())) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmap = BitmapFactory.decodeFile(tomato.getImagePath(), options);
+            if(bitmap != null) {
+                holder.imageImageView.setImageBitmap(bitmap);
+            }
         }
+
 
         //remove single match from realm
         holder.card.setOnLongClickListener(new View.OnLongClickListener() {
@@ -160,6 +176,7 @@ public class TomatoesAdapter extends RealmRecyclerViewAdapter<Tomato> {
         public TextView idTextView;
         public TextView statusTextView;
         public TextView redTextView, greenTextView, blueTextView;
+        public TextView redEQTextView, greenEQTextView, blueEQTextView;
         public ImageView imageImageView;
 
         public CardViewHolder(View itemView) {
@@ -170,6 +187,9 @@ public class TomatoesAdapter extends RealmRecyclerViewAdapter<Tomato> {
             redTextView = (TextView) itemView.findViewById(R.id.red_textView);
             greenTextView = (TextView) itemView.findViewById(R.id.green_textView);
             blueTextView = (TextView) itemView.findViewById(R.id.blue_textView);
+            redEQTextView = (TextView) itemView.findViewById(R.id.red_eq_textView);
+            greenEQTextView = (TextView) itemView.findViewById(R.id.green_eq_textView);
+            blueEQTextView = (TextView) itemView.findViewById(R.id.blue_eq_textView);
             statusTextView = (TextView) itemView.findViewById(R.id.status_textView);
             idTextView = (TextView) itemView.findViewById(R.id.id_textView);
             imageImageView = (ImageView) itemView.findViewById(R.id.image_imageView);

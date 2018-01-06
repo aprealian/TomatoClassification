@@ -8,8 +8,8 @@
 
     <string-array name="method_array">
         <item>choose picture</item>
-        <item>camera</item>
-        <item>image url</item>
+        <!--<item>camera</item>
+        <item>image url</item>-->
     </string-array>
 
 </resources>

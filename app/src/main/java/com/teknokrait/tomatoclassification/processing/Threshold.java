@@ -30,7 +30,7 @@ public class Threshold {
                 B = Color.blue(pixel);
                 int gray = (int) (0.2989 * R + 0.5870 * G + 0.1140 * B);
                 // use 128 as threshold, above -> white, below -> black
-                if (gray > 200) {
+                if (gray > 170) {
                     gray = 255;
                 }
                 else{

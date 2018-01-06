@@ -14,7 +14,8 @@
         <ImageView
             android:id="@+id/image_imageView"
             android:layout_width="130dp"
-            android:layout_height="wrap_content"
+            android:layout_height="130dp"
+            android:layout_marginRight="10dp"
             android:layout_gravity="center_vertical|start" />
 
         <LinearLayout
@@ -117,6 +118,93 @@
                     android:textSize="@dimen/text_size_normal" />
                 <TextView
                     android:id="@+id/blue_textView"
+                    android:text="112"
+                    android:layout_weight="3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+            </LinearLayout>
+
+
+
+
+
+
+
+            <LinearLayout
+                android:visibility="gone"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:text="RED EQ"
+                    android:textColor="#b91c1c"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+                <TextView
+                    android:text=" : "
+                    android:textColor="#b91c1c"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+                <TextView
+                    android:id="@+id/red_eq_textView"
+                    android:text="112"
+                    android:layout_weight="3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:visibility="gone"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:text="GREEN EQ"
+                    android:textColor="#1cb929"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+                <TextView
+                    android:text=" : "
+                    android:textColor="#1cb929"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+                <TextView
+                    android:id="@+id/green_eq_textView"
+                    android:text="112"
+                    android:layout_weight="3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:visibility="gone"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:text="BLUE EQ"
+                    android:textColor="#1c56b9"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+                <TextView
+                    android:text=" : "
+                    android:textColor="#FF1C56B9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_normal" />
+                <TextView
+                    android:id="@+id/blue_eq_textView"
                     android:text="112"
                     android:layout_weight="3"
                     android:layout_width="0dp"
