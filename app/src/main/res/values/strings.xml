@@ -11,5 +11,6 @@
         <!--<item>camera</item>
         <item>image url</item>-->
     </string-array>
+    <string name="title_activity_test">TestActivity</string>
 
 </resources>
