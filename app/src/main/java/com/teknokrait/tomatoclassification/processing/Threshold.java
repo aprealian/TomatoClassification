@@ -86,15 +86,17 @@ public class Threshold {
                 float[] hsv = new float[3];
                 Color.RGBToHSV(r, g, b, hsv);
 
-                Log.e("cek warna ke-"+y, hsv[0]+" "+hsv[1]+" "+hsv[2]);
+                //Log.e("cek warna ke-"+y, hsv[0]+" "+hsv[1]+" "+hsv[2]);
 
                 //if (hsv[0] > 60 && hsv[1] > 0.75 && hsv[2] > 0.50) { //OK
                 if (hsv[0] > 60 && hsv[1] > 0.80 && hsv[2] > 0.60) {
-                    gray = 255;
-                    bmOut.setPixel(x, y, Color.argb(A, R, G, B));
+                    //gray = 255;
+                    //bmOut.setPixel(x, y, Color.argb(A, R, G, B));
+                    gray = 0;
+                    bmOut.setPixel(x, y, Color.argb(A, gray, gray, gray));
                 }
                 else{
-                    gray = 0;
+                    gray = 255;
                     bmOut.setPixel(x, y, Color.argb(A, gray, gray, gray));
                 }
                 // set new pixel color to output bitmap
